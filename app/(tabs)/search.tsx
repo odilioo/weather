@@ -9,17 +9,34 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [city, setCity] = useState('');
+  const [hourlyTemps, setHourlyTemps] = useState<{ time: string; temp: number }[]>([]);
 
-  const forecastHours = ['17:00', '18:00', '19:00', '20:00', '21:00'];
+  // Helper function to get emoji based on weather description
+  const getWeatherEmoji = (description: string) => {
+    if (description.toLowerCase().includes('cloud')) return '☁️';
+    if (description.toLowerCase().includes('rain')) return '🌧️';
+    if (description.toLowerCase().includes('sun')) return '☀️';
+    if (description.toLowerCase().includes('snow')) return '❄️';
+    if (description.toLowerCase().includes('storm')) return '⛈️';
+    return '🌤️';
+  };
 
   const handleSearch = async () => {
     Keyboard.dismiss();
     setLoading(true);
     setError(null);
     setWeather(null);
+    setHourlyTemps([]);
     try {
       const data = await getWeather(city, 'metric');
       setWeather(data);
+      if (data.hourly && data.hourly.time && data.hourly.temperature_2m) {
+        const temps = data.hourly.time.map((time: string, i: number) => ({
+          time: time.slice(11, 16),
+          temp: Math.round(data.hourly.temperature_2m[i]),
+        }));
+        setHourlyTemps(temps);
+      }
     } catch (err) {
       console.error(err);
       setError('City not found');
@@ -72,7 +89,9 @@ export default function Search() {
               <Text style={styles.city}>{weather.name}</Text>
             </View>
 
-            <Text style={styles.weatherIcon}>⛅</Text>
+            <Text style={styles.weatherIcon}>
+              {getWeatherEmoji(weather.weather[0].description)}
+            </Text>
             <Text style={styles.tempText}>{Math.round(weather.main.temp)}°</Text>
 
             <Text style={styles.time}>{getCurrentDateTime()}</Text>
@@ -84,9 +103,10 @@ export default function Search() {
 
             <Text style={styles.forecastTitle}>Forecast</Text>
             <ScrollView horizontal style={styles.forecastScroll} showsHorizontalScrollIndicator={false}>
-              {forecastHours.map((hour, index) => (
+              {hourlyTemps.slice(1, 6).map(({ time, temp }, index) => (
                 <View key={index} style={styles.forecastItem}>
-                  <Text style={styles.forecastText}>{hour}</Text>
+                  <Text style={styles.forecastText}>{time}</Text>
+                  <Text style={styles.forecastText}>{temp}°</Text>
                 </View>
               ))}
             </ScrollView>
