@@ -36,6 +36,7 @@ export default function Settings() {
           value={isMetric}
         />
       </View>
+      <Text style={styles.version}>Version 1 - 23 May 2025</Text>
     </View>
   );
 }
@@ -67,5 +68,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     color: '#000',
+  },
+  version: {
+    marginTop: 'auto',
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#888',
+    paddingTop: 24,
   },
 });
